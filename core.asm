@@ -54,6 +54,14 @@ core:
 .check_B:
         cmp     al, 'B'                 ; sprawdzamy czy znak to 'B'
         jne     .check_C                ; jeśli nie, to przechodzimy do sprawdzania czy to 'C'
+        pop     rax                     ; jeśli tak, to pobieramy wartość ze stosu
+        test    rax, rax                ; porównujemy ją z 0
+        jge     .B_forward              ; jeśli >= 0, to przechodzimy do etykiety .B_forward
+        neg     rax                     ; jeśli < 0, to negujemy ją
+        sub     rcx, rax                ; i odejmujemy od indeksu
+        jmp     .increment
+.B_forward:
+        add     rcx, rax                ; jeśli wartość>= 0, to dodajemy ją do indeksu
         jmp     .increment
 
 .check_C:
