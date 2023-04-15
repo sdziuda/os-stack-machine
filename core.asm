@@ -54,7 +54,10 @@ core:
         cmp     al, 'B'                 ; sprawdzamy czy znak to 'B'
         jne     .check_C                ; jeśli nie, to przechodzimy do sprawdzania czy to 'C'
         pop     rax                     ; jeśli tak, to pobieramy wartość ze stosu
-        test    rax, rax                ; porównujemy ją z 0
+        mov     rdx, [rsp]              ; kopiujemy wartość ze szczytu stosu
+        test    rdx, rdx                ; sprawdzamy wartość na szczycie stosu
+        je      .increment              ; jeśli jest tam 0, to przechodzimy dalej
+        test    rax, rax                ; wpp. porównujemy pobraną wcześniej wartość z 0
         jge     .B_forward              ; jeśli >= 0, to przechodzimy do etykiety .B_forward
         neg     rax                     ; jeśli < 0, to negujemy ją
         sub     rsi, rax                ; i odejmujemy od indeksu
@@ -91,7 +94,16 @@ core:
         jne     .check_P                ; jeśli nie, to przechodzimy do sprawdzania czy to 'P'
         push    rsi                     ; jeśli tak, to wrzucamy na stos rdi i rsi (aby zachować je przy call)
         push    rdi
-        call    get_value               ; jeśli tak, to wołamy funkcję get_value (parametr n jest w rdi)
+        mov     rax, rsp                ; kopiujemy wartość rsp do rax
+        and     rax, 15                 ; i wykonujemy operację and z 15 (sprawdzamy czy stos jest wyrównany do 16)
+        jz      .G_aligned              ; jeśli tak, to przechodzimy do etykiety .check_G_call
+        sub     rsp, 8                  ; wpp. odejmujemy od rsp 8
+        call    get_value               ; wołamy funkcję get_value (parametr n jest w rdi)
+        add     rsp, 8                  ; dodajemy 8 do rsp
+        jmp     .G_end                  ; przechodzimy do końca funkcjonalności 'G'
+.G_aligned:
+        call    get_value               ; stos jest wyrównany do 16, wołamy get_value (parametr n jest w rdi)
+.G_end:
         pop     rdi                     ; przywracamy wartości rdi i rsi
         pop     rsi
         push    rax                     ; wynik wywoływanej funkcji wrzucamy na stos
@@ -104,7 +116,16 @@ core:
         pop     rsi                     ; pobieramy wartość ze stosu do rsi
         push    rdx                     ; wrzucamy adres tablicy znaków i rdi (n) na stos (aby zachować je przy call)
         push    rdi
+        mov     rax, rsp                ; kopiujemy wartość rsp do rax
+        and     rax, 15                 ; i wykonujemy operację and z 15 (sprawdzamy czy stos jest wyrównany do 16)
+        jz      .P_aligned              ; jeśli tak, to przechodzimy do etykiety .check_P_call
+        sub     rsp, 8                  ; wpp. odejmujemy od rsp 8
         call    put_value               ; wołamy funkcję put_value (parametr n jest w rdi a v w rsi)
+        add     rsp, 8                  ; dodajemy 8 do rsp
+        jmp     .P_end                  ; przechodzimy do końca funkcjonalności 'P'
+.P_aligned:
+        call    put_value               ; stos jest wyrównany do 16, wołamy put_value (parametr n jest w rdi a v w rsi)
+.P_end:
         pop     rdi                     ; przywracamy wartość rdi i rsi
         pop     rsi
         jmp     .increment
