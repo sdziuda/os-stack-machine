@@ -1,4 +1,4 @@
-%include "macro_print.asm"              ; makro do wypisywania debugowych informacji
+;%include "macro_print.asm"              ; makro do wypisywania debugowych informacji
 
 global core
 extern get_value
@@ -89,8 +89,12 @@ core:
 .check_G:
         cmp     al, 'G'                 ; sprawdzamy czy znak to 'G'
         jne     .check_P                ; jeśli nie, to przechodzimy do sprawdzania czy to 'P'
+        push    rsi                     ; jeśli tak, to wrzucamy na stos rdi i rsi (aby zachować je przy call)
+        push    rdi
         call    get_value               ; jeśli tak, to wołamy funkcję get_value (parametr n jest w rdi)
-        push    rax                     ; i jej wynik wrzucamy na stos
+        pop     rdi                     ; przywracamy wartości rdi i rsi
+        pop     rsi
+        push    rax                     ; wynik wywoływanej funkcji wrzucamy na stos
         jmp     .increment
 
 .check_P:
@@ -98,9 +102,11 @@ core:
         jne     .check_S                ; jeśli nie, to przechodzimy do sprawdzania czy to 'S'
         mov     rdx, rsi                ; wpp. kopiujemy adres tablicy znaków (rsi) do rdx
         pop     rsi                     ; pobieramy wartość ze stosu do rsi
-        push    rdx                     ; wrzucamy adres tablicy znaków na stos (aby został zachowany przy call)
+        push    rdx                     ; wrzucamy adres tablicy znaków i rdi (n) na stos (aby zachować je przy call)
+        push    rdi
         call    put_value               ; wołamy funkcję put_value (parametr n jest w rdi a v w rsi)
-        pop     rsi                     ; przywracamy wartość rsi
+        pop     rdi                     ; przywracamy wartość rdi i rsi
+        pop     rsi
         jmp     .increment
 
 .check_S:
