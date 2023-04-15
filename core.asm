@@ -10,12 +10,11 @@ section .text
 ;   rdi - wartość n
 ;   rsi - wskaźnik na tablicę znaków
 core:
-        mov     rcx, 0                  ; ustawiamy rcx (indeks) na 0
         push    rbp                     ; zapamiętujemy wartość rbp
         mov     rbp, rsp                ; zapisujemy początkową wartość stosu do rbp
 
 .read_loop:
-        mov     al, [rsi+rcx*1]         ; wczytujemy znak z tablicy
+        mov     al, [rsi]               ; wczytujemy znak z tablicy
         test    al, al                  ; sprawdzamy czy nie jest to koniec tablicy
         je      .end                    ; jeśli tak, to kończymy
 
@@ -58,10 +57,10 @@ core:
         test    rax, rax                ; porównujemy ją z 0
         jge     .B_forward              ; jeśli >= 0, to przechodzimy do etykiety .B_forward
         neg     rax                     ; jeśli < 0, to negujemy ją
-        sub     rcx, rax                ; i odejmujemy od indeksu
+        sub     rsi, rax                ; i odejmujemy od indeksu
         jmp     .increment
 .B_forward:
-        add     rcx, rax                ; jeśli wartość>= 0, to dodajemy ją do indeksu
+        add     rsi, rax                ; jeśli wartość>= 0, to dodajemy ją do indeksu
         jmp     .increment
 
 .check_C:
@@ -115,7 +114,7 @@ core:
         push    rax                     ; wrzucamy cyfrę na stos
 
 .increment:
-        inc     rcx
+        inc     rsi
         jmp     .read_loop
 
 .end:
