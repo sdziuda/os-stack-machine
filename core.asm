@@ -4,6 +4,14 @@ global core
 extern get_value
 extern put_value
 
+section .data
+
+target: times N dq N                    ; tablica gdzie ma trafić dana wartość (na początku wypełniona N)
+
+section .bss
+
+value: resq N                           ; tablica z wartościami do wymiany
+
 section .text
 
 ; Argumenty funkcji core:
@@ -133,6 +141,22 @@ core:
 .check_S:
         cmp     al, 'S'                 ; sprawdzamy czy znak to 'S'
         jne     .number                 ; jeśli nie, to zakładamy, że znak to cyfra 0-9
+        lea     rcx, [rel value]        ; jeśli tak, to kopiujemy adres tablicy value do rcx
+        lea     r8, [rel target]        ; kopiujemy adres tablicy target do r8
+.S_wait_mine:
+        mov     rdx, [r8+rdi*8]         ; kopiujemy wartość z tablicy target pod indeksem n do rdx
+        cmp     rdx, N                  ; porównujemy wartość w rdx z N
+        jne     .S_wait_mine            ; jeśli są różne, to czekamy dalej
+        pop     rax                     ; jeśli są równe, to pobieramy wartość (m) ze stosu do rax
+        pop     rdx                     ; pobieramy wartość (do wymiany) ze stosu do rdx
+        mov     [rcx+rdi*8], rdx        ; zapisujemy wartość do wymiany do tablicy value pod indeksem n
+        mov     [r8+rdi*8], rax         ; zapisujemy wartość m do tablicy target pod indeksem n
+.S_wait_other:
+        mov     rdx, [r8+rax*8]         ; wczytujemy wartość w tablicy target pod indeksem m do rdx
+        cmp     rdx, rdi                ; porównujemy wartość w rdx z n
+        jne     .S_wait_other           ; jeśli są różne, to czekamy dalej
+        push    qword [rcx+rax*8]       ; jeśli są równe, to wrzucamy na stos wartość z tablicy value pod indeksem m
+        mov     qword [r8+rax*8], N     ; i otwieramy blokadę na indeks m
         jmp     .increment
 
 .number:                                ; zakładamy teraz, że znak to cyfra 0-9
