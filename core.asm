@@ -1,5 +1,3 @@
-;%include "macro_print.asm"              ; makro do wypisywania debugowych informacji
-
 global core
 extern get_value
 extern put_value
