@@ -4,10 +4,12 @@ extern put_value
 
 section .data
 
+align 8                                 ; wyrównujemy aby operacja mov była atomowa
 target: times N dq N                    ; tablica gdzie ma trafić dana wartość (na początku wypełniona N)
 
 section .bss
 
+align 8                                 ; tak samo jak wcześniej wyrównujemy
 value: resq N                           ; tablica z wartościami do wymiany
 
 section .text
