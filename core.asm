@@ -32,10 +32,8 @@ core:
 .check_plus:
         cmp     al, '+'                 ; sprawdzamy czy znak to '+'
         jne     .check_star             ; jeśli nie, to przechodzimy do sprawdzania czy to '*'
-        pop     rax                     ; jeśli tak, to pobieramy dwie wartości ze stosu
-        pop     rdx
-        add     rax, rdx                ; dodajemy je
-        push    rax                     ; i wynik wrzucamy na stos
+        pop     rax                     ; jeśli tak, to pobieramy wartość ze stosu
+        add     [rsp], rax              ; do wartości na szczycie stosu dodajemy pobraną wcześniej wartość
         jmp     .read_loop              ; pozostałych warunków nie musimy sprawdzać, przechodzimy dalej
 
 .check_star:
@@ -50,9 +48,7 @@ core:
 .check_minus:
         cmp     al, '-'                 ; sprawdzamy czy znak to '-'
         jne     .check_n                ; jeśli nie, to przechodzimy do sprawdzania czy to 'n'
-        pop     rax                     ; jeśli tak, to pobieramy wartość ze stosu
-        neg     rax                     ; negujemy ją arytmetycznie
-        push    rax                     ; i wynik wrzucamy na stos
+        neg     qword [rsp]             ; jeśli tak, to negujemy wartość na szczycie stosu
         jmp     .read_loop
 
 .check_n:
@@ -68,13 +64,7 @@ core:
         mov     rdx, [rsp]              ; kopiujemy wartość ze szczytu stosu
         test    rdx, rdx                ; sprawdzamy wartość na szczycie stosu
         je      .read_loop              ; jeśli jest tam 0, to przechodzimy dalej
-        test    rax, rax                ; wpp. porównujemy pobraną wcześniej wartość z 0
-        jge     .B_forward              ; jeśli >= 0, to przechodzimy do etykiety .B_forward
-        neg     rax                     ; jeśli < 0, to negujemy ją
-        sub     rsi, rax                ; i odejmujemy od indeksu
-        jmp     .read_loop
-.B_forward:
-        add     rsi, rax                ; jeśli wartość>= 0, to dodajemy ją do indeksu
+        add     rsi, rax                ; jeśli nie, to dodajemy wartość ze stosu do wskaźnika na tablicę znaków
         jmp     .read_loop
 
 .check_C:
@@ -86,9 +76,7 @@ core:
 .check_D:
         cmp     al, 'D'                 ; sprawdzamy czy znak to 'D'
         jne     .check_E                ; jeśli nie, to przechodzimy do sprawdzania czy to 'E'
-        pop     rax                     ; jeśli tak, to pobieramy wartość ze stosu
-        push    rax                     ; wrzucamy ją na stos
-        push    rax                     ; i jeszcze raz
+        push    qword [rsp]             ; jeśli tak, to wrzucamy na stos wartość ze szczytu stosu
         jmp     .read_loop
 
 .check_E:
